@@ -51,9 +51,6 @@ class Node:
     def __lt__(self, other):
         return self.cost < other.cost
 
-    def __str__(self):
-        return str("{} : {}".format(self.state, self.cost))
-
 
 # algorithm for DFS
 
@@ -128,10 +125,13 @@ def bfs(initial_state, goal_test):
 def a_star(initial_state, goal_state, heuristic):
     print("\n**** " + heuristic.upper() + " DISTANCE ****")
     g = 0
-    expanded = 0
     depth = 0
+    expanded = 1
+    cost_of_path = 0
+
     int_state = Node(initial_state, None)
     goal = Node(goal_state, None)
+
     if heuristic == "manhattan":
         int_state.h = manhattan_distance(int_state, goal)
         int_state.g = g
@@ -142,19 +142,20 @@ def a_star(initial_state, goal_state, heuristic):
         int_state.cost = int_state.g + int_state.h
 
     frontier = [int_state]
-    heapq.heapify(frontier)
-    explored = set()
+    explored = []
     steps = []
 
     while frontier:
+        flag = 0
         state = heapq.heappop(frontier)
-        # print("\n")
-        # print("g = {}, h = {}".format(state.g, state.h))
-        # print("cost is {}".format(state.cost))
-        # printboard(state.state)
         heapq.heapify(frontier)
+        print("\n")
+        print("g = {}, h = {}".format(state.g, state.h))
+        print("cost is {}".format(state.cost))
+        print("expanded states = {}".format(expanded))
+        printboard(state.state)
         neighbors = children(state)
-        explored.add(state)
+        explored.append(state.state)
 
         if np.array_equal(goal_state, state.state):
             print("SUCCESS")
@@ -168,10 +169,14 @@ def a_star(initial_state, goal_state, heuristic):
             while steps:  # print the trace of steps from the start
                 z = steps.pop()
                 depth = z.g
+                print("g = {}, h = {}".format(z.g, z.h))
+                print("cost is {}".format(z.cost))
+                cost_of_path = cost_of_path + z.cost
                 printboard(z.state)
             print("Depth = {}".format(depth))
+            print("cost of path = {}".format(cost_of_path))
             print("Expanded nodes of {} distance = {}".format(heuristic, expanded))
-            return "SUCCESS", depth
+            return "SUCCESS"
 
         expanded = expanded + 1
         for x in neighbors:
@@ -184,13 +189,20 @@ def a_star(initial_state, goal_state, heuristic):
                 x.g = x.parent.g + 1
                 x.cost = x.g + x.h
 
-            if x in frontier or x in explored:
-                heapq.heappop(x)
-            else:
+            for y in frontier:
+                if y.state == x.state:
+                    flag = 1
+
+            if x.state not in explored or flag == 1:
                 heapq.heappush(frontier, x)
                 heapq.heapify(frontier)
 
-    return "FAILURE", None
+            elif x.state in frontier:
+                index = frontier.index(x.state)
+                frontier[index].cost = -1
+                heapq.heapify(frontier)
+
+    return "FAILURE"
 
 
 def children(node):
@@ -268,7 +280,7 @@ def main():
     goal_state = 1, 2, 3, 4, 5, 6, 7, 8, 0
     # initial_state = eval(sys.argv[1])
     # algorithm = sys.argv[2]
-    initial_state = 3, 5, 6, 4, 7, 1, 2, 8, 0
+    initial_state = 0, 1, 2, 8, 5, 3, 4, 7, 6
     if initial_state.__len__() != 9:
         print("Error: Wrong number of entries")
         return
