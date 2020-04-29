@@ -2,6 +2,7 @@ import numpy as np
 import heapq
 import math
 import time
+import sys
 
 
 class Node:
@@ -61,6 +62,7 @@ def dfs(initial_state, goal_state):
     explored = set()  # the explored is an empty set
     int_state = Node(initial_state, None)
     nodes_expanded = 0
+    depth = 0
     frontier.append(int_state)
     while frontier:  # loop till the stack is empty
         if nodes_expanded == 1000:
@@ -72,20 +74,23 @@ def dfs(initial_state, goal_state):
         if np.array_equal(goal_state, popped_state.state):
             print("SUCCESS")
             print("******************")
-            print("Steps of solution:")
+            print("Total nodes expanded are =", nodes_expanded)
+            print("Path to goal:")
             parent = popped_state.parent  # get the current state's parent
             steps.append(popped_state)
             while parent:       # get the parent of each node until we reach the root
                 steps.append(parent)
                 parent = parent.parent
+                depth = depth + 1
             while steps:  # print the trace of steps from the start
                 x = steps.pop()
                 printboard(x.state)
+            print("Depth = ", depth)
+            print("Total nodes expanded =", nodes_expanded)
             return "SUCCESS"
         nodes_expanded = nodes_expanded + 1
         neighbors = children(popped_state)
         for neighbor in neighbors:
-
             if tuple(neighbor.state) not in explored:
                 frontier.append(neighbor)
                 explored.add(tuple(neighbor.state))
@@ -97,22 +102,29 @@ def bfs(initial_state, goal_test):
     frontier_queue = [int_state]  # initialize queue
     explored = []  # list of explored nodes
     steps = []  # list to trace back the steps
+    depth = 0
+    nodes_expanded = 0
+    print("Expanded states: ")
     while frontier_queue:
         state = frontier_queue.pop(0)
+        nodes_expanded = nodes_expanded + 1
         explored.append(tuple(state.state))
         printboard(state.state)
         if np.array_equal(goal_test, state.state):  # goal found
             print("SUCCESS")
             print("******************")
-            print("Steps of solution:")
+            print("Path to goal: ")
             parent = state.parent  # get the current state's parent
             steps.append(state)
             while parent:       # get the parent of each node until we reach the root
                 steps.append(parent)
                 parent = parent.parent
+                depth = depth + 1
             while steps:  # print the trace of steps from the start
                 x = steps.pop()
                 printboard(x.state)
+            print("Depth = ", depth)
+            print("Total nodes expanded =", nodes_expanded)
             return "SUCCESS"
         neighbors = children(state)
         for neighbor in neighbors:
@@ -277,18 +289,24 @@ def printboard(state):
 
 
 def main():
-    goal_state = 1, 2, 3, 4, 5, 6, 7, 8, 0
+    goal_state = 0, 1, 2, 3, 4, 5, 6, 7, 8
     # initial_state = eval(sys.argv[1])
     # algorithm = sys.argv[2]
-    initial_state = 0, 1, 2, 8, 5, 3, 4, 7, 6
+    initial_state = 1, 2, 5, 3, 4, 0, 6, 7, 8
+    algorithm = "a*"
     if initial_state.__len__() != 9:
         print("Error: Wrong number of entries")
         return
-    algorithm = 'a*'
     if algorithm == 'dfs':
+        start_time = time.time()
         dfs(list(initial_state), goal_state)
+        end_time = time.time()
+        print("Running time = {}".format(end_time - start_time))
     elif algorithm == 'bfs':
+        start_time = time.time()
         bfs(list(initial_state), goal_state)
+        end_time = time.time()
+        print("Running time = {}".format(end_time - start_time))
     elif algorithm == 'a*':
         start_time = time.time()
         a_star(list(initial_state), goal_state, "manhattan")
