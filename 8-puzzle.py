@@ -2,7 +2,6 @@ import numpy as np
 import heapq
 import math
 import time
-import sys
 
 
 class Node:
@@ -51,6 +50,11 @@ class Node:
 
     def __lt__(self, other):
         return self.cost < other.cost
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            return NotImplemented
+        return self.state == other.state
 
 
 # algorithm for DFS
@@ -158,16 +162,15 @@ def a_star(initial_state, goal_state, heuristic):
     steps = []
 
     while frontier:
-        flag = 0
         state = heapq.heappop(frontier)
         heapq.heapify(frontier)
-        print("\n")
-        print("g = {}, h = {}".format(state.g, state.h))
-        print("cost is {}".format(state.cost))
-        print("expanded states = {}".format(expanded))
-        printboard(state.state)
+        # print("\n")
+        # print("g = {}, h = {}".format(state.g, state.h))
+        # print("cost is {}".format(state.cost))
+        # print("expanded states = {}".format(expanded))
+        # printboard(state.state)
         neighbors = children(state)
-        explored.append(state.state)
+        explored.append(state)
 
         if np.array_equal(goal_state, state.state):
             print("SUCCESS")
@@ -187,11 +190,13 @@ def a_star(initial_state, goal_state, heuristic):
                 printboard(z.state)
             print("Depth = {}".format(depth))
             print("cost of path = {}".format(cost_of_path))
-            print("Expanded nodes of {} distance = {}".format(heuristic, expanded))
+            print("Expanded nodes of {} distance = {}".format(heuristic, len(explored)))
             return "SUCCESS"
 
         expanded = expanded + 1
+
         for x in neighbors:
+
             if heuristic == "manhattan":
                 x.h = manhattan_distance(x, goal)
                 x.g = x.parent.g + 1
@@ -201,20 +206,33 @@ def a_star(initial_state, goal_state, heuristic):
                 x.g = x.parent.g + 1
                 x.cost = x.g + x.h
 
-            for y in frontier:
-                if y.state == x.state:
-                    flag = 1
-
-            if x.state not in explored or flag == 1:
+            if x not in explored and x not in frontier:
                 heapq.heappush(frontier, x)
                 heapq.heapify(frontier)
 
-            elif x.state in frontier:
-                index = frontier.index(x.state)
-                frontier[index].cost = -1
-                heapq.heapify(frontier)
+            if x in explored:
+                index = get_index(explored, x)
+                if explored[index].cost > x.cost:
+                    explored.remove(x)
+                    heapq.heappush(frontier, x)
+                    heapq.heapify(frontier)
+
+            if x in frontier:
+                index = get_index(frontier, x)
+                if frontier[index].cost > x.cost:
+                    frontier[index].cost = -100
+                    heapq.heappop(frontier)
+                    heapq.heapify(frontier)
+                    heapq.heappush(frontier, x)
+                    heapq.heapify(frontier)
 
     return "FAILURE"
+
+
+def get_index(heap, node):
+    for i in range(len(heap)+1):
+        if node.state == heap[i].state:
+            return i
 
 
 def children(node):
@@ -248,7 +266,6 @@ def move(state, the_move, node):
 
 
 def manhattan_distance(current_state, goal_state):
-    k = 0
     total_h = 0
     c_state = list(current_state.state)
     g_state = list(goal_state.state)
@@ -260,14 +277,11 @@ def manhattan_distance(current_state, goal_state):
         index_goal = g_state.index(i)
         h = abs(current_state.x[index_current] - goal_state.x[index_goal]) \
             + abs(current_state.y[index_current] - goal_state.y[index_goal])
-        # print("node {} - x: {}, y: {} - cost = {}".format(i, current_state.x[k], current_state.y[k], h))
-        k = k + 1
         total_h = total_h + h
     return total_h
 
 
 def euclidean_distance(current_state, goal_state):
-    k = 0
     total_h = 0
     c_state = list(current_state.state)
     g_state = list(goal_state.state)
@@ -277,8 +291,6 @@ def euclidean_distance(current_state, goal_state):
         index_goal = g_state.index(i)
         h = math.sqrt(pow((current_state.x[index_current] - goal_state.x[index_goal]), 2)) \
             + math.sqrt(pow((current_state.y[index_current] - goal_state.y[index_goal]), 2))
-        # print("node {} - x: {}, y: {} - cost = {}".format(i, current_state.x[k], current_state.y[k], h))
-        k = k + 1
         total_h = total_h + h
     return total_h
 
@@ -292,7 +304,7 @@ def main():
     goal_state = 0, 1, 2, 3, 4, 5, 6, 7, 8
     # initial_state = eval(sys.argv[1])
     # algorithm = sys.argv[2]
-    initial_state = 1, 2, 5, 3, 4, 0, 6, 7, 8
+    initial_state = 2, 3, 0, 1, 6, 4, 5, 7, 8
     algorithm = "a*"
     if initial_state.__len__() != 9:
         print("Error: Wrong number of entries")
