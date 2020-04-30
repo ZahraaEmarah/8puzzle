@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import heapq
 import math
@@ -59,22 +61,20 @@ class Node:
 
 # algorithm for DFS
 
-
 def dfs(initial_state, goal_state):
     steps = []  # list to trace back the steps
     frontier = []  # initialize the stack
     explored = set()  # the explored is an empty set
-    int_state = Node(initial_state, None)
+    fexplored = set() #used to combine the frontier and explored
+    int_state = Node(initial_state, None)  #intial state of the board
     nodes_expanded = 0
     depth = 0
-    frontier.append(int_state)
+    frontier.append(int_state) #append the intial state to the frontier
     while frontier:  # loop till the stack is empty
-        if nodes_expanded == 1000:
-            print("infinite loop")
-            return "FAILURE"
-        popped_state = frontier.pop()
-        explored.add(tuple(popped_state.state))
-        printboard(popped_state.state)
+        popped_state = frontier.pop()  #pop the top board found in the frontier
+        explored.add(tuple(popped_state.state)) #add it to the explored
+        fexplored.add(tuple(popped_state.state))
+        printboard(popped_state.state) #print it
         if np.array_equal(goal_state, popped_state.state):
             print("SUCCESS")
             print("******************")
@@ -85,7 +85,7 @@ def dfs(initial_state, goal_state):
             while parent:       # get the parent of each node until we reach the root
                 steps.append(parent)
                 parent = parent.parent
-                depth = depth + 1
+                depth = depth + 1 #to calculate the depth
             while steps:  # print the trace of steps from the start
                 x = steps.pop()
                 printboard(x.state)
@@ -93,11 +93,11 @@ def dfs(initial_state, goal_state):
             print("Total nodes expanded =", nodes_expanded)
             return "SUCCESS"
         nodes_expanded = nodes_expanded + 1
-        neighbors = children(popped_state)
-        for neighbor in neighbors:
-            if tuple(neighbor.state) not in explored:
+        neighbors = children(popped_state) #get the children of this node
+        for neighbor in neighbors: #loop on this node to add them to the frontier
+            if tuple(neighbor.state) not in fexplored: #if not in frontier or explored
                 frontier.append(neighbor)
-                explored.add(tuple(neighbor.state))
+                fexplored.add(tuple(neighbor.state)) #this is used to add both explored and frontier
     return "FAILURE"
 
 
@@ -239,22 +239,22 @@ def children(node):
     neighbors = list()
     # there are four possibilities , either move left , move right , move up or  move down
     index = node.state.index(0)
-    if index < 6:  # move down
+    if index < 6:  # move down --if not in the bottom of the board--
         neighbors.append(Node(move(node.state, 1, node), node))
-    if index not in {2, 5, 8}:  # move right
+    if index not in {2, 5, 8}:  # move right --if not in the most right of the board
         neighbors.append(Node(move(node.state, 2, node), node))
-    if index > 2:  # move up
+    if index > 2:  # move up --if not at the very top of the board--
         neighbors.append(Node(move(node.state, 3, node), node))
-    if index not in {0, 3, 6}:  # move left
+    if index not in {0, 3, 6}:  # move left --if not at the most left of the board--
         neighbors.append(Node(move(node.state, 4, node), node))
 
     return neighbors
 
 
-def move(state, the_move, node):
+def move(state, the_move, node): #this is used to check which way to move the board
     new_state = state[:]  # take a copy of the state
-
-    index = new_state.index(0)
+    #we move the (0)
+    index = new_state.index(0) #take the index where (0) is found
     if the_move == 1:  # Down
         return node.move_down(index, new_state)
     if the_move == 2:  # Right
@@ -301,25 +301,32 @@ def printboard(state):
 
 
 def main():
+    # Run the program in your terminal
+    # ex : python3 lab.py 1,0,2,3,4,5,6,7,8 dfs
+    # this means that intial state is 1,0,2,3,4,5,6,7,8
+    # and the algorithm to solve it by is dfs
+
+    #The goal state will always be the same
     goal_state = 0, 1, 2, 3, 4, 5, 6, 7, 8
-    # initial_state = eval(sys.argv[1])
-    # algorithm = sys.argv[2]
-    initial_state = 2, 3, 0, 1, 6, 4, 5, 7, 8
-    algorithm = "a*"
+    initial_state = eval(sys.argv[1])
+    #We take the intial state when running the code in terminal
+    algorithm = sys.argv[2]
+    #the algorithm should be written when running
+
     if initial_state.__len__() != 9:
         print("Error: Wrong number of entries")
         return
-    if algorithm == 'dfs':
-        start_time = time.time()
-        dfs(list(initial_state), goal_state)
-        end_time = time.time()
-        print("Running time = {}".format(end_time - start_time))
-    elif algorithm == 'bfs':
+    if algorithm == 'dfs': #run dfs
+        start_time = time.time() #start the time
+        dfs(list(initial_state), goal_state) #start solving the problem
+        end_time = time.time() #end the time
+        print("Running time = {}".format(end_time - start_time)) #print it
+    elif algorithm == 'bfs': #run bfs
         start_time = time.time()
         bfs(list(initial_state), goal_state)
         end_time = time.time()
         print("Running time = {}".format(end_time - start_time))
-    elif algorithm == 'a*':
+    elif algorithm == 'a*': #run a*
         start_time = time.time()
         a_star(list(initial_state), goal_state, "manhattan")
         end_time = time.time()
