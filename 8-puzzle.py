@@ -165,6 +165,9 @@ def a_star(initial_state, goal_state, heuristic):
         heapq.heapify(frontier)
         children_of_poppedstate = children(state)  # get all possible moves from the  popped state
         explored.append(state)  # add it to the list of explored states
+        print("g = {}, h={} ".format(state.g, state.h))
+        print("cost = {}".format(state.cost))
+        printboard(state.state)
 
         if np.array_equal(goal_state, state.state):  # if the popped state is the goal state
             print("SUCCESS")
