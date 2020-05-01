@@ -145,7 +145,7 @@ def a_star(initial_state, goal_state, heuristic):
     cost_of_path = 0
     int_state = Node(initial_state, None)
     goal = Node(goal_state, None)
-    expanded = 1
+    expanded = 0
 
     if heuristic == "manhattan":
         int_state.h = manhattan_distance(int_state, goal)  # get h(n) of root
@@ -309,7 +309,7 @@ def main():
     goal_state = 0, 1, 2, 3, 4, 5, 6, 7, 8
     initial_state = eval(sys.argv[1])
     algorithm = sys.argv[2]
-    if initial_state.__len__() != 9:
+    if len(initial_state) != 9:
         print("Error: Wrong number of entries")
         return
     if algorithm == 'dfs':
