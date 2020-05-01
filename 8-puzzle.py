@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import heapq
 import math
@@ -306,12 +307,8 @@ def printboard(state):
 
 def main():
     goal_state = 0, 1, 2, 3, 4, 5, 6, 7, 8
-    # initial_state = eval(sys.argv[1])
-    # algorithm = sys.argv[2]
-    # initial_state = 1, 2, 5, 3, 4, 0, 6, 7, 8
-    # initial_state = 3, 1, 2, 4, 0, 5, 6, 7, 8
-    initial_state = 2, 8, 0, 6, 1, 5, 3, 7, 4
-    algorithm = "a*"
+    initial_state = eval(sys.argv[1])
+    algorithm = sys.argv[2]
     if initial_state.__len__() != 9:
         print("Error: Wrong number of entries")
         return
